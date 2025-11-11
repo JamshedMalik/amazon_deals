@@ -1,4 +1,3 @@
-import { ApifyClient } from "@apify/client";
 import { logger } from "./logger.js";
 
 export interface RunDealsResult<T> {
@@ -7,13 +6,22 @@ export interface RunDealsResult<T> {
 }
 
 export class DealsApifyClient {
-	private client: ApifyClient;
+	// Lazy client to avoid requiring @apify/client at build time for HTTP-only testing
+	private client: any;
 
 	constructor(private readonly token: string) {
-		this.client = new ApifyClient({ token });
+		// defer actual import to first use
+		this.client = null;
 	}
 
 	async runDealsActor<T = unknown>(actorId: string, input: unknown, maxItems?: number): Promise<RunDealsResult<T>> {
+			if (!this.client) {
+				// Use a variable for the module name so TypeScript doesn't try to resolve it at build time
+				const moduleName = "@apify/client";
+				// eslint-disable-next-line @typescript-eslint/no-var-requires
+				const mod: any = await import(moduleName as string);
+			this.client = new mod.ApifyClient({ token: this.token });
+		}
 		logger.info("Starting Apify actor", { actorId });
 		const run = await this.client.actor(actorId).call({ input });
 		const datasetId = run.defaultDatasetId;
@@ -44,6 +52,9 @@ export class DealsApifyClient {
 	}
 
 	getKeyValueStoreClient(name: string) {
+		if (!this.client) {
+			throw new Error("Apify client not initialized – only available in Apify mode");
+		}
 		return this.client.keyValueStore(name);
 	}
 }

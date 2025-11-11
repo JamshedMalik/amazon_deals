@@ -1,5 +1,9 @@
 import { logger } from "./logger.js";
-import type { KeyValueStoreClient } from "@apify/client";
+
+export interface KeyValueStoreClient {
+	getRecord<T = any>(key: string): Promise<{ value: T | null } | null>;
+	setRecord<T = any>(key: string, data: { value: T }): Promise<void>;
+}
 
 export interface DedupeState {
 	// id -> epoch ms
