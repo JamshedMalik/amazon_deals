@@ -1,39 +1,77 @@
-## Setup
+## Setup (Local and GitHub)
 
-1. Create GitHub Secrets in your repository:
-   - `APIFY_TOKEN`: Apify API token
-   - `TELEGRAM_BOT_TOKEN`: Telegram bot token
-   - `TELEGRAM_CHAT_ID`: Channel or chat ID (e.g. `-1001234567890`)
-   - Optional: `APIFY_ACTOR_ID` to override default actor id (see below)
+Prerequisites:
+- Node.js 20.x (local) or GitHub Actions (no local install required)
+- Telegram bot (token from BotFather) and a target chat/channel id
 
-2. Default actor input:
+Default actor input (when using Apify):
    ```json
    { "domainCodes": ["de"] }
    ```
 
-3. Optional environment configuration (set as Repository → Settings → Secrets and variables → Variables):
-   - `MAX_ITEMS` (default 30)
-   - `MIN_DISCOUNT_PCT` (default 20)
-   - `DEDUPE_TTL_DAYS` (default 7)
+### Local Run
 
-4. GitHub Actions:
-   - Cron is set to run hourly at `:15`. Adjust in `.github/workflows/deals.yml`.
-   - You can also run manually via “Run workflow”.
+1) Create `.env` (root)
+```dotenv
+# Choose ONE source path below (File or HTTP). If none is chosen, Apify is used.
+USE_FILE_SOURCE=true
+FILE_SOURCE_PATH=dataset_amazon-deals-scraper_2025-11-10_23-37-36-478.json
+# USE_HTTP_SOURCE=true
+# HTTP_SOURCE_URL=https://example.com/deals.json
 
-5. Actor ID:
-   - Default in code: `apify/amazon-deals-scraper`
-   - If your actor differs (e.g., community actor), set `APIFY_ACTOR_ID` secret or variable accordingly.
+# Telegram
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=-1001234567890
 
-6. Local run:
-   ```bash
-   npm ci
-   npm run build
-   # Option A: using .env
-   cp .env.example .env   # fill values
-   node dist/index.js
+# Safe test
+DRY_RUN=true
+MAX_ITEMS=5
+MIN_DISCOUNT_PCT=20
+DEDUPE_TTL_DAYS=7
 
-   # Option B: ad-hoc environment variables
-   APIFY_TOKEN=xxx TELEGRAM_BOT_TOKEN=yyy TELEGRAM_CHAT_ID=zzz node dist/index.js
-   ```
+# For Apify mode only:
+# APIFY_TOKEN=your_apify_token
+# APIFY_ACTOR_ID=apify/amazon-deals-scraper
+```
+
+2) Install and build
+```bash
+npm install --omit=optional   # skips @apify/client for HTTP/File testing
+npm run build
+```
+
+3) Run
+```bash
+node dist/index.js
+```
+
+Notes:
+- DRY_RUN=true logs messages without sending to Telegram.
+- To send for real: set `DRY_RUN=false`, ensure the bot can post in the target chat, and use the correct numeric chat id (channels start with -100…).
+- If you switch to Apify mode, install full dependencies (ensure your registry allows `@apify/client`) and set `APIFY_TOKEN`.
+
+### GitHub Actions
+
+1) Secrets (Settings → Secrets and variables → Actions)
+- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+- Optional Apify: `APIFY_TOKEN`
+
+2) Variables (Settings → Secrets and variables → Actions → Variables)
+- `DRY_RUN`, `MAX_ITEMS`, `MIN_DISCOUNT_PCT`, `DEDUPE_TTL_DAYS`
+- `USE_FILE_SOURCE`, `FILE_SOURCE_PATH` (if reading a file in repo)
+- `USE_HTTP_SOURCE`, `HTTP_SOURCE_URL` (public JSON)
+- Optional: `APIFY_ACTOR_ID`
+
+3) Confirm workflow file exists
+- `.github/workflows/deals.yml` (already included)
+- Cron default is hourly at :15; change if desired.
+
+4) Run the workflow
+- Actions → “Amazon Deals to Telegram” → Run workflow
+- Start with `DRY_RUN=true` and `MAX_ITEMS=1` for a safe test
+
+5) Logs and sending
+- View logs in the run → look for “Deals after filter” and “DRY_RUN: would send message”
+- When ready, set `DRY_RUN=false`
 
 
