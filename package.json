@@ -1,0 +1,25 @@
+{
+  "name": "apify-amazon-deals-to-telegram",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fetch Amazon deals from Apify (DE) and post to Telegram on a GitHub Actions cron.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "@apify/client": "^2.9.1",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "p-limit": "^5.0.0",
+    "tslib": "^2.8.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
+
