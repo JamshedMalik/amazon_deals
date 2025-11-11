@@ -18,8 +18,15 @@ jobs:
           node-version: "20.x"
           cache: "npm"
 
-      - name: Install
-        run: npm ci
+      - name: Install (regenerate lockfile once)
+        run: npm install --no-audit --no-fund
+
+      - name: Commit updated lockfile
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: regenerate package-lock.json (add @apify/client)"
+          file_pattern: package-lock.json
+
 
       - name: Build
         run: npm run build
