@@ -22,7 +22,6 @@
   "devDependencies": {
     "@types/node": "20.19.24",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.3",
-    "undici-types": "6.21.0"
+    "typescript": "^5.6.3"
   }
 }
